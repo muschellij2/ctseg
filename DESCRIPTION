@@ -14,20 +14,22 @@ Depends:
 Imports:
     dcm2niir,
     stats,
-    extrantsr (>= 3.1),
     oro.nifti,
     neurobase (>= 1.27.11.1),
     fslr (>= 2.4),
     magic,
     randomForest,
     shiny,
-    utils
+    utils,
+    googledrive
 Suggests:
     dcmtk,
     tractor.base,
     dplyr,
     knitr,
-    reticulate
+    reticulate,
+    extrantsr (>= 3.1),
+    ANTsRCore
 LazyData: TRUE
 Remotes: 
     ANTsX/ANTsRCore, 

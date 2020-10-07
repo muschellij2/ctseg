@@ -1,12 +1,12 @@
-#' DeepBleed Model
+#' CTSeg Model
 #'
-#' @param outdir Output directory for `DeepBleed` model
+#' @param outdir Output directory for `CTSeg` model
 #'
-#' @note \url{https://github.com/muschellij2/deepbleed}
+#' @note \url{https://github.com/jasonccai/HeadCTSegmentation/}
 #'
 #' @return A list of the output images and predictions.
 #' @export
-#' @rdname deepbleed
+#' @rdname ctseg
 #'
 #' @examples
 #' \donttest{
@@ -45,11 +45,21 @@ download_ctseg_model = function(
 
   id = ids[[type]]
 
-  id = googledrive::as_id(id)
+  dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
   outfile = file.path(outdir, paste0(type, "_weights.hdf5"))
 
-  dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
+  # drive_url = "https://drive.google.com/"
+  # url = paste0(drive_url, "uc?id=",
+  #              id, "&export=download")
+  #   sub_url = xml2::read_html(url) %>%
+  #     xml2::xml_find_all(xpath = "//a[@id='uc-download-link']") %>%
+  #     xml2::xml_attr(attr = "href")
+  #   if (nchar(sub_url) > 0) {
+  #     url = paste0(drive_url, sub_url)
+  #   }
+  # curl::curl_download(url, destfile = outfile, quiet = FALSE)
   if (!file.exists(outfile)) {
+    id = googledrive::as_id(id)
     out = googledrive::drive_download(file = id, path = outfile)
   }
   stopifnot(all(file.exists(outfile)))
@@ -73,7 +83,7 @@ download_ctbet_model = function(
 load_ctbet_model = function(outdir = NULL,
                             type = c("unet_CT_SS_20171114_170726.h5",
                                      "unet_CT_SS_3D_201843_163521.h5")
-                                     ) {
+) {
   outfile = download_ctbet_model(outdir, type = type)
   try({reticulate::import("h5py")}, silent = TRUE)
   # need to configure model
