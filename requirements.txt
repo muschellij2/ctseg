@@ -1,0 +1,8 @@
+numpy
+nibabel
+h5py>=2.9
+tensorflow
+scipy
+keras
+keras-applications
+scikit-learn

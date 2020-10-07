@@ -1,0 +1,10 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+dependencies_from_cttools\.txt
+^\.travis\.yml$
+README\.md
+^README\.Rmd$
+^icon\.png$
+^sticker\.R$
+^sticker\.png$
+^requirements\.txt$

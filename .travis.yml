@@ -1,0 +1,20 @@
+language: R
+sudo: false
+cache: packages
+bioc_required: true
+use_bioc: true
+
+os:
+  - linux
+  - osx
+  
+deploy:
+  provider: releases
+  skip_cleanup: yes
+  api_key:
+    secure: laFG9AiY+nF3cH8TIwwDzApRqTUcRFQRTZKg5D4VKoGyFG1ylsWOJQVzIjSqwyZn2ArHtLk9/+jrjOpivFEafvkSVmxZz3AJbgtFuEnejyHJKQcO/DoNyJbJUi6gThsfvRDKnd568WfJqyGeD08iYXUJqzwwlS/v54NAHUyKkerwcNB1rVF/S0aOGvsVU2ud8Ly5CnLgwWPDVMRq7Vi9PdABrRCQTPaN8X6SMKYmbwwr40MTM4KmBl8lpfIpsE1LohCOxz+oiZHGjrhTSUR2Pq7i+8NlxrHftmP00igkkWZAH9O2urzxruVSMbz4y4B1lhqbo3JCK8mmovJon9RhYkBtFRq6J0TtWrgctMRBlySxKzw9WvY1HBftBQ4mCyRmHyEVoR92CyZk6y4Y6/Cd6TDR2eh7gwzTZvFG+4e0RPeWmHVuFy/K9doHic2GGG8jNdsM02lb0EwZ0Bh4m1ERK/nRfD0bMSyvBYtTgGF7A1wa1Ie5xUSZbFe7TyM0Bm8aUrpQpfW9P5+kg8l6Vsy4v1DmRUQKfI+6k0FOYcrzGAts14d1xY/Ax2Ol1RBLp/USxRV0AzKpKFdPyYc7+fGq0r+2aQdb8MJ/viSnzKes0xVgNk6OvBTf+zzuqLDd/F8L0xmbU4+8ORpwa7UEthzSkQZIBRak/MiS25M5rq+qfNU=
+  file_glob: yes
+  file: ctseg*.t*gz
+  'on':
+    tags: yes
+    repo: muschellij2/ctseg
