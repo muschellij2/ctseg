@@ -2,44 +2,34 @@ Package: ctseg
 Type: Package
 Title: Segmentation of X-Ray Computed Tomography (CT)
     Images of the Head
-Version: 0.17.5
-Date: 2020-07-09
+Version: 0.0.1.900
+Date: 2020-10-07
 Authors@R: c(person(given = "John", family = "Muschelli", email = "muschellij2@gmail.com",
   role = c("aut", "cre")))
-Description: Performs segmentation on computed tomography (CT) scans, including
-    skull stripping. 
+Description: Performs segmentation on computed tomography (CT) scans, 
+  with options for registration. 
 License: GPL-2
 Depends:
     R (>= 2.10)
 Imports:
-    dcm2niir,
     stats,
     oro.nifti,
     neurobase (>= 1.27.11.1),
     fslr (>= 2.4),
-    magic,
-    randomForest,
-    shiny,
     utils,
-    googledrive
+    googledrive,
+    reticulate
 Suggests:
-    dcmtk,
-    tractor.base,
-    dplyr,
     knitr,
-    reticulate,
     extrantsr (>= 3.1),
     ANTsRCore
 LazyData: TRUE
 Remotes: 
     ANTsX/ANTsRCore, 
     muschellij2/neurobase, 
-    muschellij2/extrantsr, 
-    muschellij2/fslr,
-    muschellij2/dcmtk,
-    muschellij2/dcm2niir
+    muschellij2/extrantsr
 VignetteBuilder: knitr
 Encoding: UTF-8
 RoxygenNote: 7.1.1
-BugReports: https://github.com/muschellij2/ichseg/issues
+BugReports: https://github.com/muschellij2/ctseg/issues
 URL: https://github.com/muschellij2/ctseg

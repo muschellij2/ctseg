@@ -2,8 +2,7 @@
 #'
 #' @param image Image or set of images to segment
 #' @param weight_file Model weight file, see \code{\link{download_ctbet_model}}
-#' @param data_augmentation Should data augmentation be done before
-#' prediction?
+#' @param dimension what dimension model is this?  Either 2 or 3
 #'
 #' @return A list of \code{nifti}
 #' @export
@@ -12,9 +11,13 @@
 predict_ctbet = function(
   image,
   weight_file = NULL,
-  dimension = 2L,
-  data_augmentation = TRUE) {
+  dimension = 2L) {
+  # #' @param data_augmentation Should data augmentation be done before
+  #' prediction?
 
+  if (!check_requirements()) {
+    warning("Not all modules may not be installed for ctseg")
+  }
   if (is.null(weight_file)) {
     weight_file = download_ctbet_model()
   }
@@ -40,7 +43,7 @@ predict_ctbet = function(
   }
 
   sys_path = system.file(package = "ctseg")
-
+  data_augmentation = FALSE
   if (data_augmentation) {
     auggen = reticulate::import_from_path(module = "auggen", path = sys_path)
     dataGenerator = auggen$AugmentationGenerator

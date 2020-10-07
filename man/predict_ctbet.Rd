@@ -4,24 +4,21 @@
 \alias{predict_ctbet}
 \title{Segment Brain from Scan with CTBET CNN}
 \usage{
-predict_ctbet(
-  image,
-  weight_file = NULL,
-  dimension = 2L,
-  data_augmentation = TRUE
-)
+predict_ctbet(image, weight_file = NULL, dimension = 2L)
 }
 \arguments{
 \item{image}{Image or set of images to segment}
 
 \item{weight_file}{Model weight file, see \code{\link{download_ctbet_model}}}
 
-\item{data_augmentation}{Should data augmentation be done before
-prediction?}
+\item{dimension}{what dimension model is this?  Either 2 or 3}
 }
 \value{
 A list of \code{nifti}
 }
 \description{
 Segment Brain from Scan with CTBET CNN
+}
+\examples{
+prediction?
 }

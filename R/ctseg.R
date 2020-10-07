@@ -1,9 +1,13 @@
-#' @rdname ctseg
+
+#' Predict Head Segmentation of CT images
 #' @param image image to segment using `HeadCTSegmentation` model
-#' @param mask brain mask image
+#' @param register
+#' @param ...
+#' @param outdir
+#' @param type
 #' @param verbose print diagnostic messages
-#' @param ... additional arguments to send to
-#' \code{\link{CT_Skull_Stripper_mask}}
+#'
+#' @rdname ctseg
 #' @export
 #' @examples
 #' url = paste0("https://github.com/jasonccai/HeadCTSegmentation/",
@@ -11,6 +15,9 @@
 #' image = tempfile(fileext = ".nii.gz")
 #' utils::download.file(url, destfile = image, quiet = FALSE)
 #' out = predict_ctseg(image)
+#' \dontrun{
+#' reg_out = predict_ctseg(image, register = TRUE)
+#' }
 predict_ctseg = function(image,
                          register = FALSE,
                          verbose = TRUE,
@@ -26,6 +33,12 @@ predict_ctseg = function(image,
   }
   if (!reticulate::py_module_available("nibabel")) {
     stop("nibabel is not available - use reticulate::py_install(\"nibabel\")")
+  }
+  if (!check_requirements()) {
+    warning("Not all modules may not be installed for ctseg")
+  }
+  if (verbose) {
+    message("Loading Python Modules")
   }
   nb = reticulate::import("nibabel")
   np = reticulate::import("numpy")
@@ -108,7 +121,7 @@ predict_ctseg = function(image,
 
 }
 
-#' @rdname predict_deepbleed
+#' @rdname ctseg
 #' @export
 register_ctseg = function(
   image,
@@ -121,7 +134,7 @@ register_ctseg = function(
   if (!requireNamespace("extrantsr", quietly = TRUE)) {
     stop("extrantsr is required for registration, use register = FALSE")
   }
-  image = check_nifti(image)
+  image = neurobase::check_nifti(image)
   template.file = system.file(
     'template_with_skull.nii.gz',
     package = 'ctseg')
