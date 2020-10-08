@@ -1,6 +1,7 @@
 #' CTSeg Model
 #'
 #' @param outdir Output directory for `CTSeg` model
+#' @param type Specific model to download
 #'
 #' @note \url{https://github.com/jasonccai/HeadCTSegmentation/}
 #'

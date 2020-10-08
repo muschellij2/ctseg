@@ -23,24 +23,8 @@ predict_ctbet = function(
   }
   stopifnot(file.exists(weight_file))
 
-
   image = neurobase::checkimg(image)
-  if (anyDuplicated(image) > 0 ||
-      anyDuplicated(basename(image)) > 0) {
-    i = 0
-    base_fnames = sapply(image, function(x) {
-      i <<- i +1
-      sub("[.]nii", paste0("_", i, ".nii"), x)
-    })
-    new_images = file.path(tempdir(), basename(base_fnames))
-    on.exit(unlink(new_images))
-    file.copy(image, new_images)
-    image = new_images
-  }
-  if (anyDuplicated(image) > 0 ||
-      anyDuplicated(basename(image)) > 0) {
-    stop("Duplicated images in the prediction - use unique")
-  }
+  stopifnot(length(image) == 1)
 
   sys_path = system.file(package = "ctseg")
   data_augmentation = FALSE
@@ -67,8 +51,6 @@ predict_ctbet = function(
 
   model = reticulate::import_from_path(module = "model_CT_SS", path = sys_path)
   genUnet = model$Unet_CT_SS
-
-
 
   root_folder = tempfile()
   dir.create(root_folder, recursive = TRUE, showWarnings = FALSE)

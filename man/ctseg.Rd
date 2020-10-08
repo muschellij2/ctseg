@@ -3,6 +3,8 @@
 \name{predict_ctseg}
 \alias{predict_ctseg}
 \alias{register_ctseg}
+\alias{register_ctseg_nifty}
+\alias{predict_ctseg_nifty}
 \alias{download_ctseg_model}
 \alias{download_ctbet_model}
 \alias{load_ctbet_model}
@@ -19,6 +21,17 @@ predict_ctseg(
 )
 
 register_ctseg(image, mask = NULL, verbose = TRUE, ...)
+
+register_ctseg_nifty(image, verbose = TRUE, ...)
+
+predict_ctseg_nifty(
+  image,
+  register = FALSE,
+  verbose = TRUE,
+  ...,
+  outdir = NULL,
+  type = c("NPH", "Normal_Only")
+)
 
 download_ctseg_model(outdir = NULL, type = c("NPH", "Normal_Only"))
 
@@ -37,9 +50,16 @@ load_ctseg_model(outdir = NULL, type = c("NPH", "Normal_Only"))
 \arguments{
 \item{image}{image to segment using `HeadCTSegmentation` model}
 
+\item{register}{should image registration be done for prediction? The
+prediction will be inverted back into native space}
+
 \item{verbose}{print diagnostic messages}
 
+\item{...}{not used}
+
 \item{outdir}{Output directory for `CTSeg` model}
+
+\item{type}{Specific model to download}
 }
 \value{
 A list of the output images and predictions.
@@ -59,7 +79,8 @@ image = tempfile(fileext = ".nii.gz")
 utils::download.file(url, destfile = image, quiet = FALSE)
 out = predict_ctseg(image)
 \dontrun{
-reg_out = predict_ctseg(image, register = TRUE)
+reg_out = predict_ctseg(image, register = TRUE, verbose = 2)
+reg_out_nifty = predict_ctseg_nifty(image, register = TRUE, verbose = 2)
 }
 \donttest{
 destfile = file.path(tempdir(), "01.tar.xz")

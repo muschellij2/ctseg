@@ -19,10 +19,12 @@ Imports:
     utils,
     googledrive,
     reticulate
+    RNifti
 Suggests:
     knitr,
     extrantsr (>= 3.1),
-    ANTsRCore
+    ANTsRCore,
+    RNiftyReg
 LazyData: TRUE
 Remotes: 
     ANTsX/ANTsRCore, 
