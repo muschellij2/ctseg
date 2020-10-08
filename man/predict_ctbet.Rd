@@ -4,14 +4,32 @@
 \alias{predict_ctbet}
 \title{Segment Brain from Scan with CTBET CNN}
 \usage{
-predict_ctbet(image, weight_file = NULL, dimension = 2L)
+predict_ctbet(
+  image,
+  weight_file = NULL,
+  register = FALSE,
+  register_type = c("RNiftyReg", "ANTsRCore"),
+  verbose = TRUE,
+  dimension = 2L,
+  ...
+)
 }
 \arguments{
 \item{image}{Image or set of images to segment}
 
 \item{weight_file}{Model weight file, see \code{\link{download_ctbet_model}}}
 
+\item{register}{should image registration be done for prediction? The
+prediction will be inverted back into native space}
+
+\item{register_type}{if \code{register = TRUE}, then a switch for
+which package to use for registration}
+
+\item{verbose}{print diagnostic messages}
+
 \item{dimension}{what dimension model is this?  Either 2 or 3}
+
+\item{...}{arguments passed to registration functions}
 }
 \value{
 A list of \code{nifti}
@@ -20,5 +38,15 @@ A list of \code{nifti}
 Segment Brain from Scan with CTBET CNN
 }
 \examples{
-prediction?
+url = paste0("https://github.com/jasonccai/HeadCTSegmentation/",
+"raw/master/image_data_predict/1.nii.gz")
+image = tempfile(fileext = ".nii.gz")
+utils::download.file(url, destfile = image, quiet = FALSE)
+out = predict_ctbet(image, register = FALSE)
+\donttest{
+reg_out_nifty = predict_ctbet(image, register = TRUE, verbose = 2,
+register_type = "RNiftyReg")
+reg_out = predict_ctbet(image, register = TRUE, verbose = 2,
+register_type = "ANTsRCore")
+}
 }

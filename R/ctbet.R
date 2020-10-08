@@ -3,17 +3,38 @@
 #' @param image Image or set of images to segment
 #' @param weight_file Model weight file, see \code{\link{download_ctbet_model}}
 #' @param dimension what dimension model is this?  Either 2 or 3
+#' @param register should image registration be done for prediction? The
+#' prediction will be inverted back into native space
+#' @param register_type if \code{register = TRUE}, then a switch for
+#' which package to use for registration
+#' @param verbose print diagnostic messages
+#' @param ... arguments passed to registration functions
 #'
 #' @return A list of \code{nifti}
 #' @export
 #'
 #' @examples
+#' url = paste0("https://github.com/jasonccai/HeadCTSegmentation/",
+#' "raw/master/image_data_predict/1.nii.gz")
+#' image = tempfile(fileext = ".nii.gz")
+#' utils::download.file(url, destfile = image, quiet = FALSE)
+#' out = predict_ctbet(image, register = FALSE)
+#' \donttest{
+#' reg_out_nifty = predict_ctbet(image, register = TRUE, verbose = 2,
+#' register_type = "RNiftyReg")
+#' reg_out = predict_ctbet(image, register = TRUE, verbose = 2,
+#' register_type = "ANTsRCore")
+#' }
 predict_ctbet = function(
   image,
   weight_file = NULL,
-  dimension = 2L) {
+  register = FALSE,
+  register_type = c("RNiftyReg", "ANTsRCore"),
+  verbose = TRUE,
+  dimension = 2L,
+  ...) {
   # #' @param data_augmentation Should data augmentation be done before
-  #' prediction?
+  # #' prediction?
 
   if (!check_requirements()) {
     warning("Not all modules may not be installed for ctseg")
@@ -23,6 +44,15 @@ predict_ctbet = function(
   }
   stopifnot(file.exists(weight_file))
 
+  register_type = match.arg(register_type)
+  L = run_registration(
+    image = image,
+    verbose = verbose,
+    register_type = register_type,
+    register = register,
+    ...)
+
+  image = L$template_space
   image = neurobase::checkimg(image)
   stopifnot(length(image) == 1)
 
@@ -127,5 +157,7 @@ predict_ctbet = function(
   masks = neurobase::check_nifti(outfile)
   unlink(root_folder, recursive = TRUE)
 
-  return(masks)
+  L = reverse_registration(L, outimg = masks, register, register_type, verbose)
+
+  return(L)
 }

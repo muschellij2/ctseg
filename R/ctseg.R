@@ -35,6 +35,73 @@ predict_image = function(img, outdir, type, verbose = TRUE) {
   return(outimg)
 }
 
+
+run_registration = function(image, register,
+                            register_type = c("RNiftyReg", "ANTsRCore"),
+                            verbose, ...) {
+  if (register) {
+    register_type = match.arg(register_type)
+    if (verbose) {
+      message("Registering to Template")
+    }
+    if (register_type == "RNiftyReg") {
+      L = register_ctseg_nifty(
+        image = image,
+        verbose = verbose > 1,
+        ...)
+    }
+    if (register_type == "ANTsRCore") {
+      L = register_ctseg(
+        image = image,
+        verbose = verbose > 1,
+        ...)
+    }
+  } else {
+    L = list(native_space = image,
+             template_space = image)
+  }
+  L
+}
+
+reverse_registration = function(L, outimg, register,
+                                register_type = c("RNiftyReg", "ANTsRCore"),
+                                verbose) {
+  if (register) {
+    register_type = match.arg(register_type)
+    if (verbose) {
+      message("Projecting back into Native Space")
+    }
+    if (register_type == "ANTsRCore") {
+
+      native = extrantsr::ants_apply_transforms(
+        fixed = L$native_space,
+        moving = outimg,
+        interpolator = "nearestNeighbor",
+        transformlist = L$registration$invtransforms,
+        verbose = verbose > 1,
+        whichtoinvert = 1)
+      L$registration_matrix = L$registration$fwdtransforms
+    }
+    if (register_type == "RNiftyReg") {
+      native <- RNiftyReg::applyTransform(
+        transform = RNiftyReg::reverse(L$registration),
+        x = outimg,
+        interpolation = 0L)
+      native = neurobase::check_nifti(native)
+      L$registration_matrix = RNiftyReg::forward(L$registration)
+    }
+    L$registration = NULL
+    L$native_prediction = native
+    L$template_prediction = outimg
+  } else {
+    L$native_prediction = outimg
+  }
+  L$native_prediction = neurobase::check_nifti(L$native_prediction)
+  return(L)
+}
+
+
+
 #' Predict Head Segmentation of CT images
 #' @param image image to segment using `HeadCTSegmentation` model
 #' @param register should image registration be done for prediction? The
@@ -43,7 +110,9 @@ predict_image = function(img, outdir, type, verbose = TRUE) {
 #'  passed to \code{\link{load_ctseg_model}}
 #' @param type Specific model to download,
 #'  passed to \code{\link{load_ctseg_model}}
-#' @param ... not used
+#' @param register_type if \code{register = TRUE}, then a switch for
+#' which package to use for registration
+#' @param ... arguments passed to registration functions
 #' @param verbose print diagnostic messages
 #'
 #' @rdname ctseg
@@ -54,68 +123,24 @@ predict_image = function(img, outdir, type, verbose = TRUE) {
 #' image = tempfile(fileext = ".nii.gz")
 #' utils::download.file(url, destfile = image, quiet = FALSE)
 #' out = predict_ctseg(image, register = FALSE)
-#' \dontrun{
+#' \donttest{
+#' reg_out_nifty = predict_ctseg(image, register = TRUE, verbose = 2,
+#' register_type = "RNiftyReg")
 #' reg_out = predict_ctseg(image, register = TRUE, verbose = 2,
-#' register_type = "NiftyReg")
-#' reg_out_nifty = predict_ctseg_nifty(image, register = TRUE, verbose = 2,
 #' register_type = "ANTsRCore")
 #' }
-#'
 predict_ctseg = function(image,
                          register = FALSE,
-                         register_type = c("NiftyReg", "ANTsRCore"),
                          verbose = TRUE,
+                         register_type = c("RNiftyReg", "ANTsRCore"),
                          ...,
                          outdir = NULL,
                          type = c("NPH", "Normal_Only")
 ) {
 
-    if (register) {
-      register_type = match.arg(register_type)
-      if (register_type == "NiftyReg") {
-        out = predict_ctseg_nifty(
-          image,
-          register = register,
-          verbose = verbose,
-          ...,
-          outdir = outdir,
-          type = type
-        )
-      }
-      if (register_type == "ANTsRCore") {
-        out = predict_ctseg_ants(
-          image,
-          register = register,
-          verbose = verbose,
-          ...,
-          outdir = outdir,
-          type = type
-        )
-      }
-    } else {
-      out = predict_ctseg_ants(image,
-                         register = register,
-                         verbose = verbose,
-                         ...,
-                         outdir = outdir,
-                         type = type
-      )
-    }
-  return(out)
-}
-
-#' @rdname ctseg
-#' @export
-predict_ctseg_ants = function(image,
-                              register = FALSE,
-                              register_type = c("NiftyReg", "ANTsRCore"),
-                              verbose = TRUE,
-                              ...,
-                              outdir = NULL,
-                              type = c("NPH", "Normal_Only")
-) {
-
   type = match.arg(type)
+  register_type = match.arg(register_type)
+
   if (!check_requirements()) {
     warning("Not all modules may not be installed for ctseg")
   }
@@ -126,23 +151,13 @@ predict_ctseg_ants = function(image,
   np = reticulate::import("numpy")
 
   nim = neurobase::check_nifti(image)
-  fname = neurobase::checkimg(image)
 
-  if (register) {
-    if (verbose) {
-      message("Registering to Template")
-    }
-    L = register_ctseg(
-      image = image,
-      verbose = verbose,
-      ...)
-    image = L$template_space
-    fname = tempfile(fileext = ".nii.gz")
-    neurobase::write_nifti(image, fname)
-  } else {
-    L = list(native_space = nim,
-             template_space = nim)
-  }
+  L = run_registration(
+    image = nim,
+    verbose = verbose,
+    register_type = register_type,
+    register = register,
+    ...)
   dimg = dim(L$template_space)
   if (!all(dimg[1:2] %in% 512)) {
     stop("Dimensions of image must be 512x512xZ, use register = TRUE")
@@ -154,34 +169,14 @@ predict_ctseg_ants = function(image,
     type = type[1],
     verbose = verbose)
 
-
-  if (register) {
-    if (verbose) {
-      message("Projecting back into Native Space")
-    }
-    native = extrantsr::ants_apply_transforms(
-      fixed = L$native_space,
-      moving = outimg,
-      interpolator = "nearestNeighbor",
-      transformlist = L$registration$invtransforms,
-      verbose = verbose > 1,
-      whichtoinvert = 1)
-    L$registration_matrix = L$registration$fwdtransforms
-    L$registration = NULL
-    L$native_prediction = native
-    L$template_prediction = outimg
-  } else {
-    L$native_prediction = outimg
-  }
+  L = reverse_registration(L, outimg, register, register_type, verbose)
   return(L)
-
 }
 
 #' @rdname ctseg
 #' @export
 register_ctseg = function(
   image,
-  mask = NULL,
   verbose = TRUE, ...) {
 
   if (!requireNamespace("ANTsRCore", quietly = TRUE)) {
@@ -201,7 +196,8 @@ register_ctseg = function(
     image,
     template.file = template.file,
     typeofTransform = "Rigid",
-    verbose = verbose > 1)
+    verbose = verbose > 1,
+    ...)
   temp_space = reg$outfile
   temp_space[is.na(temp_space)] = -1024
   temp_space[temp_space == 0] = -1024
@@ -239,7 +235,8 @@ register_ctseg_nifty = function(
     source = image,
     target = template,
     scope = "rigid",
-    verbose = verbose)
+    verbose = verbose,
+    ...)
 
   temp_space = reg$image
   temp_space[is.na(temp_space)] = -1024
@@ -252,73 +249,3 @@ register_ctseg_nifty = function(
   )
 }
 
-
-#' @rdname ctseg
-#' @export
-predict_ctseg_nifty = function(image,
-                               register = FALSE,
-                               verbose = TRUE,
-                               ...,
-                               outdir = NULL,
-                               type = c("NPH", "Normal_Only")
-) {
-
-  type = match.arg(type)
-  if (!check_requirements()) {
-    warning("Not all modules may not be installed for ctseg")
-  }
-  if (verbose) {
-    message("Loading Python Modules")
-  }
-  nb = reticulate::import("nibabel")
-  np = reticulate::import("numpy")
-
-  nim = RNifti::asNifti(image)
-  fname = tempfile(fileext = ".nii.gz")
-  RNifti::writeNifti(nim, fname)
-
-  if (register) {
-    if (verbose) {
-      message("Registering to Template")
-    }
-    L = register_ctseg_nifty(
-      image = image,
-      verbose = verbose > 1,
-      ...)
-    fname = tempfile(fileext = ".nii.gz")
-    RNifti::writeNifti(L$template_space, fname)
-  } else {
-    L = list(native_space = nim,
-             template_space = nim)
-  }
-  dimg = dim(L$template_space)
-  if (!all(dimg[1:2] %in% 512)) {
-    stop("Dimensions of image must be 512x512xZ, use register = TRUE")
-  }
-
-  # load predict
-  outimg = predict_image(
-    img =  L$template_space,
-    outdir = outdir,
-    type = type[1],
-    verbose = verbose)
-
-  if (register) {
-    if (verbose) {
-      message("Projecting back into Native Space")
-    }
-    native <- RNiftyReg::applyTransform(
-      transform = RNiftyReg::reverse(L$registration),
-      x = outimg,
-      interpolation = 0L)
-    # native = native$image
-
-    L$registration_matrix = RNiftyReg::forward(L$registration)
-    L$registration = NULL
-    L$native_prediction = native
-    L$template_prediction = outimg
-  } else {
-    L$native_prediction = outimg
-  }
-  return(L)
-}

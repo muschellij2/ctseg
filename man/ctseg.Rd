@@ -4,7 +4,6 @@
 \alias{predict_ctseg}
 \alias{register_ctseg}
 \alias{register_ctseg_nifty}
-\alias{predict_ctseg_nifty}
 \alias{download_ctseg_model}
 \alias{download_ctbet_model}
 \alias{load_ctbet_model}
@@ -15,23 +14,15 @@ predict_ctseg(
   image,
   register = FALSE,
   verbose = TRUE,
+  register_type = c("RNiftyReg", "ANTsRCore"),
   ...,
   outdir = NULL,
   type = c("NPH", "Normal_Only")
 )
 
-register_ctseg(image, mask = NULL, verbose = TRUE, ...)
+register_ctseg(image, verbose = TRUE, ...)
 
 register_ctseg_nifty(image, verbose = TRUE, ...)
-
-predict_ctseg_nifty(
-  image,
-  register = FALSE,
-  verbose = TRUE,
-  ...,
-  outdir = NULL,
-  type = c("NPH", "Normal_Only")
-)
 
 download_ctseg_model(outdir = NULL, type = c("NPH", "Normal_Only"))
 
@@ -55,7 +46,10 @@ prediction will be inverted back into native space}
 
 \item{verbose}{print diagnostic messages}
 
-\item{...}{not used}
+\item{register_type}{if \code{register = TRUE}, then a switch for
+which package to use for registration}
+
+\item{...}{arguments passed to registration functions}
 
 \item{outdir}{Output directory for `CTSeg` model}
 
@@ -77,10 +71,12 @@ url = paste0("https://github.com/jasonccai/HeadCTSegmentation/",
 "raw/master/image_data_predict/1.nii.gz")
 image = tempfile(fileext = ".nii.gz")
 utils::download.file(url, destfile = image, quiet = FALSE)
-out = predict_ctseg(image)
-\dontrun{
-reg_out = predict_ctseg(image, register = TRUE, verbose = 2)
-reg_out_nifty = predict_ctseg_nifty(image, register = TRUE, verbose = 2)
+out = predict_ctseg(image, register = FALSE)
+\donttest{
+reg_out_nifty = predict_ctseg(image, register = TRUE, verbose = 2,
+register_type = "RNiftyReg")
+reg_out = predict_ctseg(image, register = TRUE, verbose = 2,
+register_type = "ANTsRCore")
 }
 \donttest{
 destfile = file.path(tempdir(), "01.tar.xz")

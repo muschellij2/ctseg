@@ -18,8 +18,9 @@ Imports:
     fslr (>= 2.4),
     utils,
     googledrive,
-    reticulate
-    RNifti
+    reticulate,
+    RNifti,
+    keras
 Suggests:
     knitr,
     extrantsr (>= 3.1),
