@@ -21,10 +21,7 @@
 #' utils::download.file(url, destfile = image, quiet = FALSE)
 #' out = predict_ctbet(image, register = FALSE)
 #' \donttest{
-#' reg_out_nifty = predict_ctbet(image, register = TRUE, verbose = 2,
-#' register_type = "RNiftyReg")
-#' reg_out = predict_ctbet(image, register = TRUE, verbose = 2,
-#' register_type = "ANTsRCore")
+#' reg_out = predict_ctbet(image, register = TRUE, verbose = 2)
 #' }
 predict_ctbet = function(
   image,
@@ -35,10 +32,13 @@ predict_ctbet = function(
   ...) {
   # #' @param data_augmentation Should data augmentation be done before
   # #' prediction?
-
+  # #' reg_out_nifty = predict_ctbet(image, register = TRUE, verbose = 2,
+  # #' register_type = "RNiftyReg")
+  # #' reg_out = predict_ctbet(image, register = TRUE, verbose = 2,
+  # #' register_type = "ANTsRCore")
   check_ct_requirements()
   if (is.null(weight_file)) {
-    message("Downloading Default Weight File")
+    message("Pulling Default Weight File")
     weight_file = download_ctbet_model()
     dimension = 2L
   }

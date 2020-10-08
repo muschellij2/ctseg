@@ -57,7 +57,7 @@ run_registration = function(image, register,
     #     ...)
     # }
   } else {
-    L = list(native_space = image,
+    L = list(native_space = neurobase::check_nifti(image),
              template_space = resample_512(image))
   }
   L

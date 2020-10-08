@@ -40,9 +40,6 @@ image = tempfile(fileext = ".nii.gz")
 utils::download.file(url, destfile = image, quiet = FALSE)
 out = predict_ctbet(image, register = FALSE)
 \donttest{
-reg_out_nifty = predict_ctbet(image, register = TRUE, verbose = 2,
-register_type = "RNiftyReg")
-reg_out = predict_ctbet(image, register = TRUE, verbose = 2,
-register_type = "ANTsRCore")
+reg_out = predict_ctbet(image, register = TRUE, verbose = 2)
 }
 }
