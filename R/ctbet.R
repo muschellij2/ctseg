@@ -36,11 +36,11 @@ predict_ctbet = function(
   # #' @param data_augmentation Should data augmentation be done before
   # #' prediction?
 
-  if (!check_requirements()) {
-    warning("Not all modules may not be installed for ctseg")
-  }
+  check_requirements()
   if (is.null(weight_file)) {
+    message("Downloading Default Weight File")
     weight_file = download_ctbet_model()
+    dimension = 2L
   }
   stopifnot(file.exists(weight_file))
 

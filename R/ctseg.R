@@ -141,9 +141,7 @@ predict_ctseg = function(image,
   type = match.arg(type)
   register_type = match.arg(register_type)
 
-  if (!check_requirements()) {
-    warning("Not all modules may not be installed for ctseg")
-  }
+  check_requirements()
   if (verbose) {
     message("Loading Python Modules")
   }

@@ -1,6 +1,10 @@
 check_requirements = function() {
   have = list_requirements()
-  all(have)
+  check = all(have)
+  if (!check) {
+    warning("Not all modules may not be installed for ctseg")
+  }
+  return(check)
 }
 
 list_requirements = function() {
