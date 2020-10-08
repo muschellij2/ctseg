@@ -50,17 +50,50 @@ run_registration = function(image, register,
         verbose = verbose > 1,
         ...)
     }
-    if (register_type == "ANTsRCore") {
-      L = register_ctseg(
-        image = image,
-        verbose = verbose > 1,
-        ...)
-    }
+    # if (register_type == "ANTsRCore") {
+    #   L = register_ctseg(
+    #     image = image,
+    #     verbose = verbose > 1,
+    #     ...)
+    # }
   } else {
     L = list(native_space = image,
-             template_space = image)
+             template_space = resample_512(image))
   }
   L
+}
+
+resample_512 = function(image) {
+
+  image = RNifti::asNifti(image)
+  dimg = dim(image)
+  if (all(dimg[1:2] == 512) &&
+      dimg[3] <= 46) {
+    outimg = image
+    attr(outimg, "resampled") = FALSE
+    return(outimg)
+  }
+  new_dim = c(512L, 512L, min(40, dimg[3]))
+  scales = round((new_dim / dimg), digits = 5)
+  outimg = RNiftyReg::rescale(image, scales = scales)
+  trans = RNiftyReg::buildAffine(source = image, target = outimg)
+  outimg = RNiftyReg::applyTransform(trans, image)
+  attr(outimg, "resampled") = TRUE
+  outimg
+}
+
+reverse_resample_512 = function(image, original_image) {
+  resampled = attr(image, "resampled")
+  if (is.null(resampled)) {
+    resampled = TRUE
+  }
+  if (resampled) {
+    trans = RNiftyReg::buildAffine(source = image, target = original_image)
+    outimg = RNiftyReg::applyTransform(trans, image)
+  } else {
+    outimg = image
+  }
+  outimg
 }
 
 reverse_registration = function(L, outimg, register,
@@ -71,17 +104,17 @@ reverse_registration = function(L, outimg, register,
     if (verbose) {
       message("Projecting back into Native Space")
     }
-    if (register_type == "ANTsRCore") {
-
-      native = extrantsr::ants_apply_transforms(
-        fixed = L$native_space,
-        moving = outimg,
-        interpolator = "nearestNeighbor",
-        transformlist = L$registration$invtransforms,
-        verbose = verbose > 1,
-        whichtoinvert = 1)
-      L$registration_matrix = L$registration$fwdtransforms
-    }
+    # if (register_type == "ANTsRCore") {
+    #
+    #   native = extrantsr::ants_apply_transforms(
+    #     fixed = L$native_space,
+    #     moving = outimg,
+    #     interpolator = "nearestNeighbor",
+    #     transformlist = L$registration$invtransforms,
+    #     verbose = verbose > 1,
+    #     whichtoinvert = 1)
+    #   L$registration_matrix = L$registration$fwdtransforms
+    # }
     if (register_type == "RNiftyReg") {
       native <- RNiftyReg::applyTransform(
         transform = RNiftyReg::reverse(L$registration),
@@ -94,13 +127,16 @@ reverse_registration = function(L, outimg, register,
     L$native_prediction = native
     L$template_prediction = outimg
   } else {
-    L$native_prediction = outimg
+    L$native_prediction = reverse_resample_512(
+      outimg, original_image = L$native_space)
   }
   L$native_prediction = neurobase::check_nifti(L$native_prediction)
   return(L)
 }
 
 
+# #' @param register_type if \code{register = TRUE}, then a switch for
+# #' which package to use for registration
 
 #' Predict Head Segmentation of CT images
 #' @param image image to segment using `HeadCTSegmentation` model
@@ -110,8 +146,6 @@ reverse_registration = function(L, outimg, register,
 #'  passed to \code{\link{load_ctseg_model}}
 #' @param type Specific model to download,
 #'  passed to \code{\link{load_ctseg_model}}
-#' @param register_type if \code{register = TRUE}, then a switch for
-#' which package to use for registration
 #' @param ... arguments passed to registration functions
 #' @param verbose print diagnostic messages
 #'
@@ -124,24 +158,26 @@ reverse_registration = function(L, outimg, register,
 #' utils::download.file(url, destfile = image, quiet = FALSE)
 #' out = predict_ctseg(image, register = FALSE)
 #' \donttest{
-#' reg_out_nifty = predict_ctseg(image, register = TRUE, verbose = 2,
-#' register_type = "RNiftyReg")
-#' reg_out = predict_ctseg(image, register = TRUE, verbose = 2,
-#' register_type = "ANTsRCore")
+#' reg_out_nifty = predict_ctseg(image, register = TRUE, verbose = 2)
 #' }
 predict_ctseg = function(image,
                          register = FALSE,
                          verbose = TRUE,
-                         register_type = c("RNiftyReg", "ANTsRCore"),
+                         # register_type = c("RNiftyReg", "ANTsRCore"),
                          ...,
                          outdir = NULL,
                          type = c("NPH", "Normal_Only")
 ) {
 
+  # #' reg_out_nifty = predict_ctseg(image, register = TRUE, verbose = 2,
+  # #' register_type = "RNiftyReg")
+  # #' reg_out = predict_ctseg(image, register = TRUE, verbose = 2,
+  # #' register_type = "ANTsRCore")
   type = match.arg(type)
-  register_type = match.arg(register_type)
+  # register_type = match.arg(register_type)
+  register_type = "RNiftyReg"
 
-  check_requirements()
+  check_ct_requirements()
   if (verbose) {
     message("Loading Python Modules")
   }
@@ -171,41 +207,41 @@ predict_ctseg = function(image,
   return(L)
 }
 
-#' @rdname ctseg
-#' @export
-register_ctseg = function(
-  image,
-  verbose = TRUE, ...) {
-
-  if (!requireNamespace("ANTsRCore", quietly = TRUE)) {
-    stop("ANTsRCore is required for registration, use register = FALSE")
-  }
-  if (!requireNamespace("extrantsr", quietly = TRUE)) {
-    stop("extrantsr is required for registration, use register = FALSE")
-  }
-  image = neurobase::check_nifti(image)
-  template.file = system.file(
-    'short_template_with_skull.nii.gz',
-    package = 'ctseg')
-  if (verbose) {
-    message("Registration")
-  }
-  reg = extrantsr::registration(
-    image,
-    template.file = template.file,
-    typeofTransform = "Rigid",
-    verbose = verbose > 1,
-    ...)
-  temp_space = reg$outfile
-  temp_space[is.na(temp_space)] = -1024
-  temp_space[temp_space == 0] = -1024
-
-  L = list(
-    template_space = temp_space,
-    registration = reg,
-    native_space = image
-  )
-}
+# #' @rdname ctseg
+# #' @export
+# register_ctseg = function(
+#   image,
+#   verbose = TRUE, ...) {
+#
+#   if (!requireNamespace("ANTsRCore", quietly = TRUE)) {
+#     stop("ANTsRCore is required for registration, use register = FALSE")
+#   }
+#   if (!requireNamespace("extrantsr", quietly = TRUE)) {
+#     stop("extrantsr is required for registration, use register = FALSE")
+#   }
+#   image = neurobase::check_nifti(image)
+#   template.file = system.file(
+#     'short_template_with_skull.nii.gz',
+#     package = 'ctseg')
+#   if (verbose) {
+#     message("Registration")
+#   }
+#   reg = extrantsr::registration(
+#     image,
+#     template.file = template.file,
+#     typeofTransform = "Rigid",
+#     verbose = verbose > 1,
+#     ...)
+#   temp_space = reg$outfile
+#   temp_space[is.na(temp_space)] = -1024
+#   temp_space[temp_space == 0] = -1024
+#
+#   L = list(
+#     template_space = temp_space,
+#     registration = reg,
+#     native_space = image
+#   )
+# }
 
 
 

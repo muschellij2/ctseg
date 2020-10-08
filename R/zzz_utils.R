@@ -1,4 +1,6 @@
-check_requirements = function() {
+#' @rdname ctseg
+#' @export
+check_ct_requirements = function() {
   have = list_requirements()
   check = all(have)
   if (!check) {

@@ -15,7 +15,6 @@ Imports:
     stats,
     oro.nifti,
     neurobase (>= 1.27.11.1),
-    fslr (>= 2.4),
     utils,
     googledrive,
     reticulate,
@@ -23,8 +22,6 @@ Imports:
     keras
 Suggests:
     knitr,
-    extrantsr (>= 3.1),
-    ANTsRCore,
     RNiftyReg
 LazyData: TRUE
 Remotes: 

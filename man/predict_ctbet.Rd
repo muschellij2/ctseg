@@ -8,7 +8,6 @@ predict_ctbet(
   image,
   weight_file = NULL,
   register = FALSE,
-  register_type = c("RNiftyReg", "ANTsRCore"),
   verbose = TRUE,
   dimension = 2L,
   ...
@@ -21,9 +20,6 @@ predict_ctbet(
 
 \item{register}{should image registration be done for prediction? The
 prediction will be inverted back into native space}
-
-\item{register_type}{if \code{register = TRUE}, then a switch for
-which package to use for registration}
 
 \item{verbose}{print diagnostic messages}
 

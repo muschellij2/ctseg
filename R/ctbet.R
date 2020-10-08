@@ -1,3 +1,6 @@
+# #' @param register_type if \code{register = TRUE}, then a switch for
+# #' which package to use for registration
+
 #' Segment Brain from Scan with CTBET CNN
 #'
 #' @param image Image or set of images to segment
@@ -5,8 +8,6 @@
 #' @param dimension what dimension model is this?  Either 2 or 3
 #' @param register should image registration be done for prediction? The
 #' prediction will be inverted back into native space
-#' @param register_type if \code{register = TRUE}, then a switch for
-#' which package to use for registration
 #' @param verbose print diagnostic messages
 #' @param ... arguments passed to registration functions
 #'
@@ -29,22 +30,22 @@ predict_ctbet = function(
   image,
   weight_file = NULL,
   register = FALSE,
-  register_type = c("RNiftyReg", "ANTsRCore"),
   verbose = TRUE,
   dimension = 2L,
   ...) {
   # #' @param data_augmentation Should data augmentation be done before
   # #' prediction?
 
-  check_requirements()
+  check_ct_requirements()
   if (is.null(weight_file)) {
     message("Downloading Default Weight File")
     weight_file = download_ctbet_model()
     dimension = 2L
   }
   stopifnot(file.exists(weight_file))
-
-  register_type = match.arg(register_type)
+  # register_type = c("RNiftyReg", "ANTsRCore"),
+  register_type = "RNiftyReg"
+  # register_type = match.arg(register_type)
   L = run_registration(
     image = image,
     verbose = verbose,
