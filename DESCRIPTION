@@ -19,16 +19,12 @@ Imports:
     googledrive,
     reticulate,
     RNifti,
+    RNiftyReg,
     keras
 Suggests:
     knitr,
-    RNiftyReg,
     mmand
 LazyData: TRUE
-Remotes: 
-    ANTsX/ANTsRCore, 
-    muschellij2/neurobase, 
-    muschellij2/extrantsr
 VignetteBuilder: knitr
 Encoding: UTF-8
 RoxygenNote: 7.1.1

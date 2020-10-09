@@ -9,3 +9,6 @@ README\.md
 ^sticker\.png$
 ^requirements\.txt$
 ^run\.R$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

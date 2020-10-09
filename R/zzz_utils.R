@@ -11,12 +11,12 @@ check_ct_requirements = function() {
 
 list_requirements = function() {
   reticulate::py_module_available("numpy")
-  if (!reticulate::py_module_available("numpy")) {
-    stop("numpy is not available - use reticulate::py_install(\"numpy\")")
-  }
-  if (!reticulate::py_module_available("nibabel")) {
-    stop("nibabel is not available - use reticulate::py_install(\"nibabel\")")
-  }
+  # if (!reticulate::py_module_available("numpy")) {
+  #   stop("numpy is not available - use reticulate::py_install(\"numpy\")")
+  # }
+  # if (!reticulate::py_module_available("nibabel")) {
+  #   stop("nibabel is not available - use reticulate::py_install(\"nibabel\")")
+  # }
   fname = system.file("requirements.txt", package = "ctseg")
   suppressWarnings({
     deps = readLines(fname, warn = FALSE)
