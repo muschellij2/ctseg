@@ -63,15 +63,23 @@ CTSeg Model
 \url{https://github.com/jasonccai/HeadCTSegmentation/}
 }
 \examples{
-url = paste0("https://github.com/jasonccai/HeadCTSegmentation/",
-"raw/master/image_data_predict/1.nii.gz")
-image = tempfile(fileext = ".nii.gz")
-utils::download.file(url, destfile = image, quiet = FALSE)
-out = predict_ctseg(image, register = FALSE)
-\donttest{
-reg_out_nifty = predict_ctseg(image, register = TRUE, verbose = 2)
+authed = !inherits(try(googledrive::drive_auth()), "try-error")
+if (check_ct_requirements() && authed) {
+  url = paste0("https://github.com/jasonccai/HeadCTSegmentation/",
+               "raw/master/image_data_predict/1.nii.gz")
+  image = tempfile(fileext = ".nii.gz")
+  utils::download.file(url, destfile = image, quiet = FALSE)
+  out = predict_ctseg(image, register = FALSE)
 }
 \donttest{
+if (check_ct_requirements() && authed) {
+  reg_out = predict_ctseg(image, register = TRUE, verbose = 2)
+}
+}
+\donttest{
+authed = !inherits(try(googledrive::drive_auth()), "try-error")
+
+if (check_ct_requirements() && authed) {
 destfile = file.path(tempdir(), "01.tar.xz")
 dl = download.file(
   "https://archive.data.jhu.edu/api/access/datafile/1311?gbrecs=true",
@@ -84,5 +92,6 @@ dir.create(tdir)
 download_ctseg_model(outdir = tdir)
 mod = load_ctseg_model(outdir = tdir)
 predict_ctseg(fname, mask = mask, outdir = tdir)
+}
 }
 }

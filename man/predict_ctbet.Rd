@@ -34,12 +34,21 @@ A list of \code{nifti}
 Segment Brain from Scan with CTBET CNN
 }
 \examples{
-url = paste0("https://github.com/jasonccai/HeadCTSegmentation/",
-"raw/master/image_data_predict/1.nii.gz")
-image = tempfile(fileext = ".nii.gz")
-utils::download.file(url, destfile = image, quiet = FALSE)
-out = predict_ctbet(image, register = FALSE)
+authed = !inherits(try(googledrive::drive_auth()), "try-error")
+if (check_ct_requirements() && authed) {
+  url = paste0("https://github.com/jasonccai/HeadCTSegmentation/",
+               "raw/master/image_data_predict/1.nii.gz")
+  image = tempfile(fileext = ".nii.gz")
+  utils::download.file(url, destfile = image, quiet = FALSE)
+  out = predict_ctbet(image, register = FALSE)
+  kern = array(1, dim = c(3,3,3))
+  if (requireNamespace("mmand", quietly = TRUE)) {
+    res = mmand::components(x = out$native_prediction, kern)
+  }
+}
 \donttest{
+if (check_ct_requirements() && authed) {
 reg_out = predict_ctbet(image, register = TRUE, verbose = 2)
+}
 }
 }

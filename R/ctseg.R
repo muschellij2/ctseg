@@ -152,13 +152,18 @@ reverse_registration = function(L, outimg, register,
 #' @rdname ctseg
 #' @export
 #' @examples
-#' url = paste0("https://github.com/jasonccai/HeadCTSegmentation/",
-#' "raw/master/image_data_predict/1.nii.gz")
-#' image = tempfile(fileext = ".nii.gz")
-#' utils::download.file(url, destfile = image, quiet = FALSE)
-#' out = predict_ctseg(image, register = FALSE)
+#' authed = !inherits(try(googledrive::drive_auth()), "try-error")
+#' if (check_ct_requirements() && authed) {
+#'   url = paste0("https://github.com/jasonccai/HeadCTSegmentation/",
+#'                "raw/master/image_data_predict/1.nii.gz")
+#'   image = tempfile(fileext = ".nii.gz")
+#'   utils::download.file(url, destfile = image, quiet = FALSE)
+#'   out = predict_ctseg(image, register = FALSE)
+#' }
 #' \donttest{
-#' reg_out_nifty = predict_ctseg(image, register = TRUE, verbose = 2)
+#' if (check_ct_requirements() && authed) {
+#'   reg_out = predict_ctseg(image, register = TRUE, verbose = 2)
+#' }
 #' }
 predict_ctseg = function(image,
                          register = FALSE,

@@ -22,7 +22,8 @@ Imports:
     keras
 Suggests:
     knitr,
-    RNiftyReg
+    RNiftyReg,
+    mmand
 LazyData: TRUE
 Remotes: 
     ANTsX/ANTsRCore, 
